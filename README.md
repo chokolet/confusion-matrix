@@ -1,3 +1,24 @@
+# Add / fix by CK
+
+- java version fix : 1.7 -> 1.8
+
+- add method tag total f1 score  
+
+  - example code : [ConfusionMatrixTest](./src/test/java/com/github/habernal/confusionmatrix/ConfusionMatrixTest.java) : testF1Score()
+
+  ```bash
+   ↓gold\pred→                      LC          OG          PS          QT
+                         0           5          10           0           0
+            LC          18          10           0           0           0
+            OG          11           0          34           0           0
+            PS          34           0           0           8           0
+            QT           0           0           0           0           4
+  
+  {Precision=0.7887323943661971, F1Score=0.5894736842105263, Recall=0.47058823529411764}
+  ```
+
+  
+
 # confusion-matrix
 
 A minimalistic Java implementation of confusion matrix for evaluating learning algorithms, including accuracy, macro F-measure, Cohen's Kappa, and probabilistic confusion matrix.

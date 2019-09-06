@@ -13,8 +13,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Ivan Habernal
  */
-public class ConfusionMatrixTest
-{
+public class ConfusionMatrixTest {
 
     static ConfusionMatrix confusionMatrix;
 
@@ -30,8 +29,7 @@ public class ConfusionMatrixTest
      * example from http://www.compumine.se/web/public/newsletter/20071/precision-recall
      */
     @BeforeClass
-    public static void setUpBeforeClass()
-    {
+    public static void setUpBeforeClass() {
         confusionMatrix = new ConfusionMatrix();
 
         confusionMatrix.increaseValue("neg", "neg", 25);
@@ -48,36 +46,31 @@ public class ConfusionMatrixTest
 
     @Test
     public void testGetRowSum()
-            throws Exception
-    {
+            throws Exception {
         assertEquals(32, confusionMatrix.getRowSum("neg"));
     }
 
     @Test
     public void testGetColSum()
-            throws Exception
-    {
+            throws Exception {
         assertEquals(29, confusionMatrix.getColSum("neg"));
     }
 
     @Test
     public void testPrecision()
-            throws Exception
-    {
+            throws Exception {
         assertEquals(0.86, confusionMatrix.getPrecisionForLabels().get("neg"), 0.01);
     }
 
     @Test
     public void testRecall()
-            throws Exception
-    {
+            throws Exception {
         assertEquals(0.78, confusionMatrix.getRecallForLabels().get("neg"), 0.01);
     }
 
     @Test
     public void testMicroFMeasure()
-            throws Exception
-    {
+            throws Exception {
         System.out.println(confusionMatrix.getMicroFMeasure());
 
         assertEquals(confusionMatrix.getAccuracy(), confusionMatrix.getMicroFMeasure(), 0.01);
@@ -85,15 +78,13 @@ public class ConfusionMatrixTest
 
     @Test
     public void testMacroFMeasure()
-            throws Exception
-    {
+            throws Exception {
         System.out.println(confusionMatrix.getMacroFMeasure());
     }
 
     @Test
     public void testConfidence()
-            throws Exception
-    {
+            throws Exception {
         System.out.println(confusionMatrix.getConfidence95Accuracy());
     }
 
@@ -102,8 +93,7 @@ public class ConfusionMatrixTest
     */
     @Test
     public void testCohensKappa()
-            throws Exception
-    {
+            throws Exception {
         ConfusionMatrix cm = new ConfusionMatrix();
 
         cm.increaseValue("poor", "poor", 2);
@@ -128,8 +118,7 @@ public class ConfusionMatrixTest
     }
 
     @Deprecated
-    public static ConfusionMatrix getMatrixForWeightedKappa()
-    {
+    public static ConfusionMatrix getMatrixForWeightedKappa() {
         ConfusionMatrix cm = new ConfusionMatrix();
 
         cm.increaseValue("poor", "poor", 0);
@@ -156,8 +145,7 @@ public class ConfusionMatrixTest
     www.itc.nl/~rossiter/teach/R/R_ac.pdf page 11
      */
     @Test
-    public final void testConfidenceInterval()
-    {
+    public final void testConfidenceInterval() {
         ConfusionMatrix cm = new ConfusionMatrix();
 
         cm.increaseValue("A", "A", 35);
@@ -188,8 +176,7 @@ public class ConfusionMatrixTest
 
     @Test
     public void testMoreExpectedLabelsThanGold()
-            throws Exception
-    {
+            throws Exception {
         ConfusionMatrix cm = new ConfusionMatrix();
         cm.increaseValue("1", "1");
         cm.increaseValue("1", "2");
@@ -206,8 +193,7 @@ public class ConfusionMatrixTest
 
     @Test
     public void testParseFromText()
-            throws Exception
-    {
+            throws Exception {
         String s = "                NEG       NEU       POS\n" +
                 "       NEG        25         5         2\n" +
                 "       NEU         3        32         4\n" +
@@ -246,8 +232,7 @@ public class ConfusionMatrixTest
 
     @Test
     public void testOther()
-            throws Exception
-    {
+            throws Exception {
         ConfusionMatrix cmB = new ConfusionMatrix();
         cmB.increaseValue("corr", "corr", 0);
         cmB.increaseValue("corr", "non-corr", 77 + 51);
@@ -275,8 +260,7 @@ public class ConfusionMatrixTest
     @Test
     @Ignore
     // not really a test
-    public void testSomething()
-    {
+    public void testSomething() {
         {
             ConfusionMatrix cm = new ConfusionMatrix();
             cm.increaseValue("1", "1");
@@ -424,8 +408,7 @@ public class ConfusionMatrixTest
 
     @Test
     public void testAdd()
-            throws Exception
-    {
+            throws Exception {
         ConfusionMatrix add = ConfusionMatrix.createCumulativeMatrix(confusionMatrix);
 
         System.out.println(confusionMatrix);
@@ -441,8 +424,7 @@ public class ConfusionMatrixTest
 
     @Test
     public void testMatrix()
-            throws Exception
-    {
+            throws Exception {
         ConfusionMatrix cm = new ConfusionMatrix();
         cm.increaseValue("yes", "yes");
         cm.increaseValue("yes", "no");
@@ -452,14 +434,12 @@ public class ConfusionMatrixTest
 
     @Test
     public void testToStringProbabilistic()
-            throws Exception
-    {
+            throws Exception {
         System.out.println(confusionMatrix.toStringProbabilistic());
     }
 
     @Test
-    public void testProbabilisticThreeAnnotators()
-    {
+    public void testProbabilisticThreeAnnotators() {
         // agreement between annotator1 and annotator2
         ConfusionMatrix a1a2 = new ConfusionMatrix();
         a1a2.increaseValue("after", "before");
@@ -496,8 +476,7 @@ public class ConfusionMatrixTest
 
     @Test
     public void testBug()
-            throws Exception
-    {
+            throws Exception {
         /*
         ↓gold\pred→               ""        "bec_aft" "in other words"   "specifically"         "though"           "thus"         "before"
                ""                9                5                0                5                1                2                1
@@ -576,8 +555,7 @@ public class ConfusionMatrixTest
      */
     @Test
     public void testProbabilityConfusionMatrixCinkovaEtAl2012()
-            throws Exception
-    {
+            throws Exception {
         ConfusionMatrix a1vsa2 = ConfusionMatrix.parseFromText(
                 "1 1.a 2 4 5\n1 29 1 1 0 0\n1.a 0 1 0 0 0\n2 0 1 11 0 0\n4 0 0 0 2 0\n5 0 0 0 3 1");
 
@@ -616,8 +594,7 @@ public class ConfusionMatrixTest
 
     @Test
     public void testNegativeUnitMatrix()
-            throws Exception
-    {
+            throws Exception {
         ConfusionMatrix cm1 = new ConfusionMatrix();
         cm1.increaseValue("1", "1", 1);
         cm1.increaseValue("1", "2", 2);
@@ -641,8 +618,7 @@ public class ConfusionMatrixTest
      */
     @Test
     public void testTransposedMatrix()
-            throws Exception
-    {
+            throws Exception {
         ConfusionMatrix a1vsa2 = ConfusionMatrix.parseFromText(
                 "1 1.a 2 4 5\n1 29 1 1 0 0\n1.a 0 1 0 0 0\n2 0 1 11 0 0\n4 0 0 0 2 0\n5 0 0 0 3 1");
         System.out.println(a1vsa2);
@@ -669,8 +645,7 @@ public class ConfusionMatrixTest
 
     @Test
     public void testSymmetricConfusionMatrixA1A2()
-            throws Exception
-    {
+            throws Exception {
         ConfusionMatrix a1vsa2 = ConfusionMatrix.parseFromText(
                 "1 1.a 2 4 5\n1 29 1 1 0 0\n1.a 0 1 0 0 0\n2 0 1 11 0 0\n4 0 0 0 2 0\n5 0 0 0 3 1");
         System.out.println(a1vsa2);
@@ -684,8 +659,7 @@ public class ConfusionMatrixTest
 
     @Test
     public void testSymmetricConfusionMatrixA1A3()
-            throws Exception
-    {
+            throws Exception {
         ConfusionMatrix a1vsa3 = ConfusionMatrix.parseFromText(
                 "1 1.a 2 4 5\n1 29 2 0 0 0\n1.a 1 0 0 0 0\n2 0 0 12 0 0\n4 0 0 0 1 1\n5 0 0 0 0 4");
         System.out.println(a1vsa3);
@@ -706,8 +680,7 @@ public class ConfusionMatrixTest
      */
     @Test
     public void testApplesToApples()
-            throws Exception
-    {
+            throws Exception {
         ConfusionMatrix f1 = new ConfusionMatrix();
         f1.increaseValue("pos", "pos", 3);
         f1.increaseValue("neg", "neg", 373);
@@ -720,6 +693,7 @@ public class ConfusionMatrixTest
         System.out.println("Precision (pos): " + pf1);
         System.out.println("Recall (pos): " + rf1);
         System.out.println("F-measure (pos): " + fmf1);
+
 
         ConfusionMatrix f2 = new ConfusionMatrix();
         f2.increaseValue("pos", "pos", 4);
@@ -800,6 +774,40 @@ public class ConfusionMatrixTest
         System.out.println("Precision (pos): " + p);
         System.out.println("Recall (pos): " + r);
         System.out.println("F-measure (pos) F_tp,fp: " + fm);
+
+    }
+
+    @Test
+    public void testF1Score() {
+
+        ConfusionMatrix znullTag = new ConfusionMatrix();
+
+        znullTag.increaseValue("LC", "LC", 10);
+        znullTag.increaseValue("LC", "Z-NULL", 18);
+        znullTag.increaseValue("OG", "OG", 34);
+        znullTag.increaseValue("OG", "Z-NULL", 11);
+        znullTag.increaseValue("PS", "PS", 8);
+        znullTag.increaseValue("PS", "Z-NULL", 34);
+        znullTag.increaseValue("QT", "QT", 4);
+        znullTag.increaseValue("Z-NULL", "LC", 5);
+        znullTag.increaseValue("Z-NULL", "OG", 10);
+
+        System.out.println(znullTag);
+        System.out.println(znullTag.getF1Score());
+
+        ConfusionMatrix noneTag = new ConfusionMatrix();
+        noneTag.increaseValue("LC", "LC", 10);
+        noneTag.increaseValue("LC", "", 18);
+        noneTag.increaseValue("OG", "OG", 34);
+        noneTag.increaseValue("OG", "", 11);
+        noneTag.increaseValue("PS", "PS", 8);
+        noneTag.increaseValue("PS", "", 34);
+        noneTag.increaseValue("QT", "QT", 4);
+        noneTag.increaseValue("", "LC", 5);
+        noneTag.increaseValue("", "OG", 10);
+
+        System.out.println(noneTag);
+        System.out.println(noneTag.getF1Score());
 
     }
 }

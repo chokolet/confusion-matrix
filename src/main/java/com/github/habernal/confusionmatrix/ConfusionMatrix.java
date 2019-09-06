@@ -17,6 +17,7 @@
 package com.github.habernal.confusionmatrix;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of confusion matrix for evaluating learning algorithms; computes macro F-measure,
@@ -24,8 +25,7 @@ import java.util.*;
  *
  * @author Ivan Habernal
  */
-public class ConfusionMatrix
-{
+public class ConfusionMatrix {
 
     protected int total = 0;
 
@@ -43,15 +43,53 @@ public class ConfusionMatrix
 
     private Locale locale = Locale.ENGLISH;
 
-    public ConfusionMatrix()
-    {
+    public ConfusionMatrix() {
         this.map = new TreeMap<>();
 
     }
 
+    public Map<String, Double> getF1Score() {
+        return getF1Score(this);
+    }
+
+    public Map<String, Double> getF1Score(ConfusionMatrix confusionMatrix) {
+
+        Map<String, Double> retConfScore = new HashMap<>();
+        Map<String, Map<String, Integer>> getMap = this.map;
+
+        int tagTotalCalc = 0;
+        Set<String> tmp = getMap.keySet().stream().collect(Collectors.toSet());
+        Map<String, Integer> labelCntMap;
+        for (String labelSet : tmp) {
+            labelCntMap = getMap.get(labelSet);
+            for (String labelList : tmp) {
+                if (labelSet.equalsIgnoreCase(labelList)) {
+                    if (labelCntMap.get(labelSet) != null)
+                        tagTotalCalc += labelCntMap.get(labelSet);
+                }
+            }
+        }
+
+
+        int preSum = 0, recallSum = 0;
+
+        for (String labelSet : tmp) {
+            if ("Z-NULL".equalsIgnoreCase(labelSet) || "".equalsIgnoreCase(labelSet)) continue;
+            recallSum += confusionMatrix.getRowSum(labelSet);
+            preSum += confusionMatrix.getColSum(labelSet);
+        }
+        double re = (double) tagTotalCalc / (double) recallSum;
+        double pre = (double) tagTotalCalc / (double) preSum;
+
+        retConfScore.put("Recall", re);
+        retConfScore.put("Precision", pre);
+        retConfScore.put("F1Score", (2.0 * pre * re) / (pre + re));
+
+        return retConfScore;
+    }
+
     public void setNumberOfDecimalPlaces(int numberOfDecimalPlaces)
-            throws IllegalArgumentException
-    {
+            throws IllegalArgumentException {
         if (numberOfDecimalPlaces < 1 || numberOfDecimalPlaces > 100) {
             throw new IllegalArgumentException("Argument must be in rage 1-100");
         }
@@ -59,8 +97,7 @@ public class ConfusionMatrix
         this.numberOfDecimalPlaces = numberOfDecimalPlaces;
     }
 
-    public void setLocale(Locale locale)
-    {
+    public void setLocale(Locale locale) {
         this.locale = locale;
     }
 
@@ -68,13 +105,11 @@ public class ConfusionMatrix
         return locale;
     }
 
-    private String getFormat()
-    {
+    private String getFormat() {
         return "%." + numberOfDecimalPlaces + "f";
     }
 
-    public void increaseValue(String goldValue, String observedValue)
-    {
+    public void increaseValue(String goldValue, String observedValue) {
         increaseValue(goldValue, observedValue, 1);
     }
 
@@ -83,8 +118,7 @@ public class ConfusionMatrix
      *
      * @return list of labels
      */
-    public List<String> getLabelSeries()
-    {
+    public List<String> getLabelSeries() {
         return labelSeries;
     }
 
@@ -95,8 +129,7 @@ public class ConfusionMatrix
      * @param observedValue ac
      * @param times         n-times
      */
-    public void increaseValue(String goldValue, String observedValue, int times)
-    {
+    public void increaseValue(String goldValue, String observedValue, int times) {
         allGoldLabels.add(goldValue);
         allPredictedLabels.add(observedValue);
 
@@ -122,18 +155,15 @@ public class ConfusionMatrix
         }
     }
 
-    public double getAccuracy()
-    {
+    public double getAccuracy() {
         return ((double) correct / (double) total);
     }
 
-    public int getTotalSum()
-    {
+    public int getTotalSum() {
         return total;
     }
 
-    public int getRowSum(String label)
-    {
+    public int getRowSum(String label) {
         int result = 0;
 
         for (Integer i : map.get(label).values()) {
@@ -143,8 +173,7 @@ public class ConfusionMatrix
         return result;
     }
 
-    public int getColSum(String label)
-    {
+    public int getColSum(String label) {
         int result = 0;
 
         for (Map<String, Integer> row : this.map.values()) {
@@ -156,8 +185,7 @@ public class ConfusionMatrix
         return result;
     }
 
-    public Map<String, Double> getPrecisionForLabels()
-    {
+    public Map<String, Double> getPrecisionForLabels() {
         Map<String, Double> precisions = new LinkedHashMap<>();
         for (String label : allGoldLabels) {
             double precision = getPrecisionForLabel(label);
@@ -167,8 +195,7 @@ public class ConfusionMatrix
         return precisions;
     }
 
-    public double getPrecisionForLabel(String label)
-    {
+    public double getPrecisionForLabel(String label) {
         double precision = 0;
         int tp = 0;
         int fpAndTp = 0;
@@ -194,8 +221,7 @@ public class ConfusionMatrix
      *
      * @return double
      */
-    public double getMicroFMeasure()
-    {
+    public double getMicroFMeasure() {
         int allTruePositives = 0;
         int allTruePositivesAndFalsePositives = 0;
         int allTruePositivesAndFalseNegatives = 0;
@@ -221,8 +247,7 @@ public class ConfusionMatrix
      *
      * @return double
      */
-    public double getMacroFMeasure()
-    {
+    public double getMacroFMeasure() {
         Map<String, Double> fMeasureForLabels = getFMeasureForLabels();
 
         double totalFMeasure = 0;
@@ -240,8 +265,7 @@ public class ConfusionMatrix
      * @param beta beta parameter
      * @return double
      */
-    public double getMacroFMeasure(double beta)
-    {
+    public double getMacroFMeasure(double beta) {
         Map<String, Double> fMeasureForLabels = getFMeasureForLabels(beta);
 
         double totalFMeasure = 0;
@@ -258,8 +282,7 @@ public class ConfusionMatrix
      *
      * @return double
      */
-    public Map<String, Double> getFMeasureForLabels()
-    {
+    public Map<String, Double> getFMeasureForLabels() {
         Map<String, Double> fMeasure = new LinkedHashMap<>();
 
         Map<String, Double> precisionForLabels = getPrecisionForLabels();
@@ -287,8 +310,7 @@ public class ConfusionMatrix
      * @param beta beta paremeter; higher than 1 prefers recall, lower than 1 prefers precision
      * @return double
      */
-    public Map<String, Double> getFMeasureForLabels(double beta)
-    {
+    public Map<String, Double> getFMeasureForLabels(double beta) {
         Map<String, Double> fMeasure = new LinkedHashMap<>();
 
         Map<String, Double> precisionForLabels = getPrecisionForLabels();
@@ -315,8 +337,7 @@ public class ConfusionMatrix
      *
      * @return double
      */
-    public Map<String, Double> getRecallForLabels()
-    {
+    public Map<String, Double> getRecallForLabels() {
         Map<String, Double> recalls = new LinkedHashMap<>();
         for (String label : allGoldLabels) {
             double recall = getRecallForLabel(label);
@@ -332,8 +353,7 @@ public class ConfusionMatrix
      * @param label label
      * @return double
      */
-    public double getRecallForLabel(String label)
-    {
+    public double getRecallForLabel(String label) {
         int fnAndTp = 0;
         double recall = 0;
         int tp = 0;
@@ -355,8 +375,7 @@ public class ConfusionMatrix
      *
      * @return conf. int
      */
-    public double getConfidence95Accuracy()
-    {
+    public double getConfidence95Accuracy() {
         return 1.96 * Math.sqrt(getAccuracy() * (1.0 - getAccuracy()) / total);
     }
 
@@ -365,18 +384,15 @@ public class ConfusionMatrix
      *
      * @return conf. int
      */
-    public double getConfidence90Accuracy()
-    {
+    public double getConfidence90Accuracy() {
         return 1.645 * Math.sqrt(getAccuracy() * (1.0 - getAccuracy()) / total);
     }
 
-    public double getConfidence90AccuracyLow()
-    {
+    public double getConfidence90AccuracyLow() {
         return getAccuracy() - getConfidence90Accuracy();
     }
 
-    public double getConfidence90AccuracyHigh()
-    {
+    public double getConfidence90AccuracyHigh() {
         return getAccuracy() + getConfidence90Accuracy();
     }
 
@@ -385,8 +401,7 @@ public class ConfusionMatrix
      *
      * @return accuracy minus half of the confidence interval
      */
-    public double getConfidence95AccuracyLow()
-    {
+    public double getConfidence95AccuracyLow() {
         return getAccuracy() - getConfidence95Accuracy();
     }
 
@@ -395,8 +410,7 @@ public class ConfusionMatrix
      *
      * @return accuracy plus half of the confidence interval
      */
-    public double getConfidence95AccuracyHigh()
-    {
+    public double getConfidence95AccuracyHigh() {
         return getAccuracy() + getConfidence95Accuracy();
     }
 
@@ -406,13 +420,11 @@ public class ConfusionMatrix
      *
      * @return conf
      */
-    public double getConfidence95MacroFM()
-    {
+    public double getConfidence95MacroFM() {
         return 1.96 * Math.sqrt(getMacroFMeasure() * (1.0 - getMacroFMeasure()) / total);
     }
 
-    public double getConfidence90MacroFM()
-    {
+    public double getConfidence90MacroFM() {
         return 1.66 * Math.sqrt(getMacroFMeasure() * (1.0 - getMacroFMeasure()) / total);
     }
 
@@ -421,8 +433,7 @@ public class ConfusionMatrix
      *
      * @return macro F-measure minus half of the confidence interval
      */
-    public double getConfidence95MacroFMLow()
-    {
+    public double getConfidence95MacroFMLow() {
         return getMacroFMeasure() - getConfidence95MacroFM();
     }
 
@@ -431,8 +442,7 @@ public class ConfusionMatrix
      *
      * @return macro F-measure plus half of the confidence interval
      */
-    public double getConfidence95MacroFMHigh()
-    {
+    public double getConfidence95MacroFMHigh() {
         return getMacroFMeasure() + getConfidence95MacroFM();
     }
 
@@ -441,8 +451,7 @@ public class ConfusionMatrix
      *
      * @return double
      */
-    public double getCohensKappa()
-    {
+    public double getCohensKappa() {
         // compute p (which is actually accuracy)
         double p = getAccuracy();
 
@@ -464,8 +473,7 @@ public class ConfusionMatrix
         return (p - pe) / (1 - pe);
     }
 
-    private List<List<String>> prepareToString()
-    {
+    private List<List<String>> prepareToString() {
         // adding zeros
         for (String row : allGoldLabels) {
             if (!map.containsKey(row)) {
@@ -514,8 +522,7 @@ public class ConfusionMatrix
         return result;
     }
 
-    protected String tableToString(List<List<String>> table)
-    {
+    protected String tableToString(List<List<String>> table) {
         // finding the maximum entry length
         int maxEntryLength = Integer.MIN_VALUE;
         for (List<String> row : table) {
@@ -541,8 +548,7 @@ public class ConfusionMatrix
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         List<List<String>> table = prepareToString();
 
         return tableToString(table);
@@ -553,8 +559,7 @@ public class ConfusionMatrix
      *
      * @return string
      */
-    public String toStringLatex()
-    {
+    public String toStringLatex() {
         List<List<String>> table = prepareToString();
         StringBuilder sb = new StringBuilder();
 
@@ -566,8 +571,7 @@ public class ConfusionMatrix
 
                 if ((i == 0 || j == 0) && !value.isEmpty()) {
                     sb.append("\\textbf{").append(value).append("} ");
-                }
-                else {
+                } else {
                     sb.append(value);
                     sb.append(" ");
                 }
@@ -583,8 +587,7 @@ public class ConfusionMatrix
         return sb.toString();
     }
 
-    public String printNiceResults()
-    {
+    public String printNiceResults() {
         return "Macro F-measure: " + String.format(Locale.ENGLISH, getFormat(), getMacroFMeasure())
                 + ", (CI at .95: " + String
                 .format(Locale.ENGLISH, getFormat(), getConfidence95MacroFM())
@@ -592,8 +595,7 @@ public class ConfusionMatrix
                 .format(Locale.ENGLISH, getFormat(), getMicroFMeasure());
     }
 
-    public String printLabelPrecRecFm()
-    {
+    public String printLabelPrecRecFm() {
         Map<String, Double> precisionForLabels = getPrecisionForLabels();
         Map<String, Double> recallForLabels = getRecallForLabels();
         Map<String, Double> fMForLabels = getFMeasureForLabels();
@@ -615,8 +617,7 @@ public class ConfusionMatrix
         return sb.toString();
     }
 
-    public double getAvgPrecision()
-    {
+    public double getAvgPrecision() {
         double res = 0;
         Collection<Double> values = getPrecisionForLabels().values();
         for (double d : values) {
@@ -626,8 +627,7 @@ public class ConfusionMatrix
         return res / (double) values.size();
     }
 
-    public double getAvgRecall()
-    {
+    public double getAvgRecall() {
         double res = 0;
         Collection<Double> values = getRecallForLabels().values();
         for (double d : values) {
@@ -643,8 +643,7 @@ public class ConfusionMatrix
      * @param matrices confusion matrices
      * @return confusion matrix
      */
-    public static ConfusionMatrix createCumulativeMatrix(ConfusionMatrix... matrices)
-    {
+    public static ConfusionMatrix createCumulativeMatrix(ConfusionMatrix... matrices) {
         ConfusionMatrix result = new ConfusionMatrix();
 
         for (ConfusionMatrix matrix : matrices) {
@@ -669,8 +668,7 @@ public class ConfusionMatrix
      *
      * @return new instance
      */
-    public ConfusionMatrix getSymmetricConfusionMatrix()
-    {
+    public ConfusionMatrix getSymmetricConfusionMatrix() {
         return createCumulativeMatrix(this, getTransposedMatrix(), getNegativeUnitMatrix());
     }
 
@@ -679,8 +677,7 @@ public class ConfusionMatrix
      *
      * @return new instance
      */
-    public ConfusionMatrix getTransposedMatrix()
-    {
+    public ConfusionMatrix getTransposedMatrix() {
         ConfusionMatrix result = new ConfusionMatrix();
 
         for (Map.Entry<String, Map<String, Integer>> gold : this.map.entrySet()) {
@@ -703,8 +700,7 @@ public class ConfusionMatrix
      *
      * @return negative unit matrix
      */
-    protected ConfusionMatrix getNegativeUnitMatrix()
-    {
+    protected ConfusionMatrix getNegativeUnitMatrix() {
         ConfusionMatrix result = new ConfusionMatrix();
 
         for (Map.Entry<String, Map<String, Integer>> gold : this.map.entrySet()) {
@@ -714,8 +710,7 @@ public class ConfusionMatrix
                 // negative value on diagonal
                 if (gold.getKey().equals(predicted.getKey())) {
                     result.increaseValue(gold.getKey(), predicted.getKey(), -value);
-                }
-                else {
+                } else {
                     // zeros elsewhere
                     result.increaseValue(gold.getKey(), predicted.getKey(), 0);
                 }
@@ -733,8 +728,7 @@ public class ConfusionMatrix
      * @throws IllegalArgumentException if input is malformed
      */
     public static ConfusionMatrix parseFromText(String text)
-            throws IllegalArgumentException
-    {
+            throws IllegalArgumentException {
         try {
 
             String[] lines = text.split("\n");
@@ -774,8 +768,7 @@ public class ConfusionMatrix
             }
 
             return result;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new IllegalArgumentException("Wrong input format", e);
         }
     }
@@ -786,8 +779,7 @@ public class ConfusionMatrix
      *
      * @return string
      */
-    public String printClassDistributionGold()
-    {
+    public String printClassDistributionGold() {
         StringBuilder sb = new StringBuilder("Gold data distribution\t\t");
         sb.append("Predicted data distribution\n");
         for (String goldLabel : this.allGoldLabels) {
@@ -811,8 +803,7 @@ public class ConfusionMatrix
      *
      * @return table
      */
-    protected List<List<String>> prepareToStringProbabilistic()
-    {
+    protected List<List<String>> prepareToStringProbabilistic() {
         // adding zeros
         for (String row : allGoldLabels) {
             if (!map.containsKey(row)) {
@@ -868,11 +859,97 @@ public class ConfusionMatrix
      *
      * @return string
      */
-    public String toStringProbabilistic()
-    {
+    public String toStringProbabilistic() {
         List<List<String>> table = prepareToStringProbabilistic();
 
         return tableToString(table);
     }
 
+    public class ScoreInfoVo {
+
+
+        private int allTruePositives;
+
+        private int allTrueNegatives;
+        private int allFalsePositives;
+        private int allFalseNegative;
+
+        private int allTruePositivesAndFalsePositives;
+        private int allTruePositivesAndFalseNegatives;
+
+        private double normAccurancy;
+
+        public int getAllTruePositives() {
+            return allTruePositives;
+        }
+
+        public int getAllTrueNegatives() {
+            return allTrueNegatives;
+        }
+
+        public int getAllFalsePositives() {
+            return allFalsePositives;
+        }
+
+        public int getAllFalseNegative() {
+            return allFalseNegative;
+        }
+
+        public int getAllTruePositivesAndFalsePositives() {
+            return allTruePositivesAndFalsePositives;
+        }
+
+        public int getAllTruePositivesAndFalseNegatives() {
+            return allTruePositivesAndFalseNegatives;
+        }
+
+        public double getNormAccurancy() {
+            return normAccurancy;
+        }
+
+
+        public ScoreInfoVo(int allTruePositives, int allTruePositivesAndFalsePositives, int allTruePositivesAndFalseNegatives) {
+            this.allTruePositives = allTruePositives;
+            this.allTruePositivesAndFalsePositives = allTruePositivesAndFalsePositives;
+            this.allTruePositivesAndFalseNegatives = allTruePositivesAndFalseNegatives;
+        }
+
+
+        public ScoreInfoVo invoke() {
+
+            for (String label : map.keySet()) {
+                if (map.containsKey(label) && map.get(label).containsKey(label)) {
+                    allTruePositives += ConfusionMatrix.this.map.get(label).get(label);
+                }
+                allTruePositivesAndFalsePositives += getColSum(label);
+                allTruePositivesAndFalseNegatives += getRowSum(label);
+            }
+
+            return this;
+        }
+
+        public ScoreInfoVo normalCalc() {
+
+            allFalsePositives = allTruePositivesAndFalsePositives - allTruePositives;
+            allFalseNegative = allTruePositivesAndFalseNegatives - allTruePositives - allFalsePositives;
+            allTrueNegatives = correct - allTruePositives;
+
+            normAccurancy = (double) allTruePositives / (double) (allFalsePositives + allFalseNegative + allTrueNegatives + allTruePositives);
+            return this;
+
+        }
+
+        @Override
+        public String toString() {
+            return "ScoreInfoVo{" +
+                    "allTruePositives=" + allTruePositives +
+                    ", allTrueNegatives=" + allTrueNegatives +
+                    ", allFalsePositives=" + allFalsePositives +
+                    ", allFalseNegative=" + allFalseNegative +
+                    ", allTruePositivesAndFalsePositives=" + allTruePositivesAndFalsePositives +
+                    ", allTruePositivesAndFalseNegatives=" + allTruePositivesAndFalseNegatives +
+                    ", normAccurancy=" + normAccurancy +
+                    '}';
+        }
+    }
 }
